@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jhonasalves/go-expert-fc-stress-test/internal/reporter"
@@ -25,6 +27,23 @@ examples and usage of using your application. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		if url == "" {
+			log.Fatal("URL is required. Use --url or -u to provide a URL.")
+		}
+
+		if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+			log.Fatal("Invalid URL. URL should start with 'http://' or 'https://'.")
+		}
+
+		if requests <= 0 {
+			log.Fatal("Invalid number of requests. It should be greater than 0.")
+		}
+
+		if concurrency <= 0 {
+			log.Fatal("Invalid concurrency. It should be greater than 0.")
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("URL: %s\n", url)
 		fmt.Printf("Requests: %d\n", requests)
