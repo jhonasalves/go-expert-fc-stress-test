@@ -3,6 +3,7 @@ package tester
 import (
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -24,21 +25,24 @@ func RunLoadTest(url string, totalRequests, concurrency int) *TestResult {
 
 	// Channel for communication of results from goroutine
 	resultChan := make(chan int, totalRequests)
-
 	// Concurrency control semaphore: Limits the number of simultaneous goroutines
 	sem := make(chan struct{}, concurrency)
 
 	s := spinner.New(spinner.CharSets[36], 300*time.Millisecond)
 	s.Start()
+	defer s.Stop()
 
 	for i := 0; i < totalRequests; i++ {
 		wg.Add(1)
 		sem <- struct{}{}
 
 		go func() {
-			defer wg.Done()
-			// Releases the slot in the semaphore
+			defer func() {
+				wg.Done()
+				<-sem
+			}()
 
+			// Releases the slot in the semaphore
 			resp, err := http.Get(url)
 			if err != nil {
 				resultChan <- 0 // Indicates an error without printing to the terminal
@@ -49,22 +53,26 @@ func RunLoadTest(url string, totalRequests, concurrency int) *TestResult {
 			resultChan <- resp.StatusCode
 		}()
 	}
+
 	// Waits for all goroutines to finish
 	go func() {
 		wg.Wait()
 		close(resultChan)
 	}()
+
 	// Processes the status codes
 	for status := range resultChan {
 		if status == 200 {
-			successfulRequests++
+			atomic.AddInt32(&successfulRequests, 1)
 		}
-		count, _ := results.StatusCodes.LoadOrStore(status, 1)
-		results.StatusCodes.Store(status, count.(int)+1)
+
+		if count, ok := results.StatusCodes.Load(status); ok {
+			results.StatusCodes.Store(status, count.(int)+1)
+		} else {
+			results.StatusCodes.Store(status, 1)
+		}
 	}
 
 	results.SuccessfulRequests = int(successfulRequests)
-	s.Stop()
-
 	return results
 }
