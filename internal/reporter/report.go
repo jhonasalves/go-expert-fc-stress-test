@@ -8,7 +8,7 @@ import (
 	"github.com/jhonasalves/go-expert-fc-stress-test/internal/tester"
 )
 
-func GenerateReport(results tester.TestResult, duration time.Duration) {
+func GenerateReport(results *tester.TestResult, duration time.Duration) {
 	successColor := color.New(color.FgGreen).PrintfFunc()
 	errorColor := color.New(color.FgRed).PrintfFunc()
 	infoColor := color.New(color.FgCyan).PrintfFunc()
@@ -22,13 +22,16 @@ func GenerateReport(results tester.TestResult, duration time.Duration) {
 
 	fmt.Printf("%-10s %-20s\n", "Status", "Number of Requests")
 	fmt.Println("---------------------------------------------------------")
-	for statusCode, count := range results.StatusCodes {
+	results.StatusCodes.Range(func(key, value interface{}) bool {
+		statusCode := key.(int)
+		count := value.(int)
 		if statusCode == 200 {
 			successColor("%-10d %-20d\n", statusCode, count)
 		} else {
 			errorColor("%-10d %-20d\n", statusCode, count)
 		}
-	}
+		return true
+	})
 
 	successColor("\nTest completed successfully!\n")
 }
