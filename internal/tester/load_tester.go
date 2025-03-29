@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
+
+	"github.com/briandowns/spinner"
 )
 
 type TestResult struct {
@@ -25,6 +28,9 @@ func RunLoadTest(url string, totalRequests, concurrency int) TestResult {
 
 	// Concurrency control semaphore: Limits the number of simultaneous goroutines
 	sem := make(chan struct{}, concurrency) // Channel with "concurrency" slots
+
+	s := spinner.New(spinner.CharSets[36], 300*time.Millisecond)
+	s.Start()
 
 	for i := 0; i < totalRequests; i++ {
 		wg.Add(1)
@@ -51,6 +57,7 @@ func RunLoadTest(url string, totalRequests, concurrency int) TestResult {
 	go func() {
 		wg.Wait()
 		close(resultChan) // Closes the channel only after all goroutines are done
+		s.Stop()
 	}()
 
 	// Processes the status codes
