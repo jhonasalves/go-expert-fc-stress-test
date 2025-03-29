@@ -3,7 +3,10 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
+	"github.com/jhonasalves/go-expert-fc-stress-test/internal/reporter"
+	"github.com/jhonasalves/go-expert-fc-stress-test/internal/tester"
 	"github.com/spf13/cobra"
 )
 
@@ -26,6 +29,12 @@ to quickly create a Cobra application.`,
 		fmt.Printf("URL: %s\n", url)
 		fmt.Printf("Requests: %d\n", requests)
 		fmt.Printf("Concurrency: %d\n", concurrency)
+
+		start := time.Now()
+		results := tester.RunLoadTest(url, requests, concurrency)
+		duration := time.Since(start)
+
+		reporter.GenerateReport(results, duration)
 	},
 }
 
@@ -37,9 +46,9 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().StringVarP(&url, "url", "u", "", "URL do serviço a ser testado")
-	rootCmd.Flags().IntVarP(&requests, "requests", "r", 1, "Número total de requests")
-	rootCmd.Flags().IntVarP(&concurrency, "concurrency", "c", 1, "Número de chamadas simultâneas")
+	rootCmd.Flags().StringVarP(&url, "url", "u", "", "URL of the service to be tested")
+	rootCmd.Flags().IntVarP(&requests, "requests", "r", 1, "Total number of requests")
+	rootCmd.Flags().IntVarP(&concurrency, "concurrency", "c", 1, "Number of simultaneous calls")
 
 	rootCmd.MarkFlagRequired("url")
 }
