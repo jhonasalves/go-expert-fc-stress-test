@@ -29,14 +29,14 @@ O relatório gerado ao final dos testes incluirá:
 Para gerar a imagem Docker da aplicação, execute o seguinte comando na raiz do projeto:
 
 ```bash
-docker build -t loadtester .
+docker build -t loadtest .
 ```
 
 ### Executar a Aplicação
 A aplicação pode ser executada via Docker. Exemplo de uso:
 
 ```bash
-docker run loadtester --url https://httpbin.org/status/200,404,500 --requests 1000 --concurrency 10
+docker run loadtest --url https://httpbin.org/status/200,404,500 --requests 1000 --concurrency 10
 ```
 Exemplo de Resultado:
 ```bash

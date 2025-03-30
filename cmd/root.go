@@ -20,13 +20,19 @@ var (
 
 var rootCmd = &cobra.Command{
 	Use:   "loadtest",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "Load testing tool for HTTP services",
+	Long: `LoadTest is a CLI tool designed to stress test HTTP services.
+It allows you to simulate multiple concurrent requests to evaluate the performance
+and reliability of your application under heavy load.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Features:
+- Specify the target URL to test.
+- Configure the total number of requests to send.
+- Set the level of concurrency for simultaneous requests.
+
+Example usage:
+  loadtest --url https://example.com --requests 1000 --concurrency 50
+`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		if url == "" {
 			log.Fatal("URL is required. Use --url or -u to provide a URL.")
