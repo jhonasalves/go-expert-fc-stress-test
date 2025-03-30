@@ -32,6 +32,15 @@ func RunLoadTest(url string, totalRequests, concurrency int) *TestResult {
 	s.Start()
 	defer s.Stop()
 
+	transport := &http.Transport{
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: concurrency,
+	}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   30 * time.Second,
+	}
+
 	for i := 0; i < totalRequests; i++ {
 		wg.Add(1)
 		sem <- struct{}{}
@@ -43,7 +52,7 @@ func RunLoadTest(url string, totalRequests, concurrency int) *TestResult {
 			}()
 
 			// Releases the slot in the semaphore
-			resp, err := http.Get(url)
+			resp, err := client.Get(url)
 			if err != nil {
 				resultChan <- 0 // Indicates an error without printing to the terminal
 				return
